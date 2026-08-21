@@ -7,6 +7,7 @@ class StoryGenerator:
 
     def generate_story(
         self,
+    
         genre="mystery",
         theme="an ordinary person discovers something impossible",
         duration_seconds=45,

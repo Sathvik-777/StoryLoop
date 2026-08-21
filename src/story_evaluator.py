@@ -29,10 +29,10 @@ Score each category from 0 to 10:
 Then calculate an overall_score from 0 to 10.
 
 A story should PASS only if:
-- overall_score >= 7
-- hook >= 7
-- payoff >= 7
-- pacing >= 6
+- overall_score >= 7.5
+- hook >= 7.5
+- payoff >= 7.5
+- pacing >= 6.5
 
 Also provide:
 - verdict: "PASS" or "REWRITE"
@@ -63,4 +63,14 @@ Return ONLY valid JSON in this format:
             input=prompt
         )
 
-        return json.loads(response.output_text)
+
+        raw_output = response.output_text.strip()
+
+        if raw_output.startswith("```json"):
+            raw_output = raw_output[7:]
+
+        if raw_output.endswith("```"):
+            raw_output = raw_output[:-3]
+
+        return json.loads(raw_output.strip())
+        
