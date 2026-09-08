@@ -11,7 +11,7 @@ class StoryEvaluator:
         prompt = f"""
 You are a strict editor evaluating a short-form social media story.
 
-Evaluate the following story for a target video length of approximately 45 seconds.
+Evaluate the following story for a target video length between 30 and 90 seconds.
 
 STORY:
 {story}
@@ -29,10 +29,10 @@ Score each category from 0 to 10:
 Then calculate an overall_score from 0 to 10.
 
 A story should PASS only if:
-- overall_score >= 7.5
-- hook >= 7.5
-- payoff >= 7.5
-- pacing >= 6.5
+- overall_score >= 7
+- hook >= 7
+- payoff >= 7
+- pacing >= 6
 
 Also provide:
 - verdict: "PASS" or "REWRITE"

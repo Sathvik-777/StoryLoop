@@ -27,7 +27,7 @@ IMPROVE:
 - The overall emotional impact
 - The ending/payoff when necessary
 
-Keep the story suitable for approximately 45 seconds of voiceover.
+Keep the story suitable for 30 to 90 seconds of voiceover.
 
 ORIGINAL STORY:
 {story}
