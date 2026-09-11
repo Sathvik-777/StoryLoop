@@ -6,12 +6,14 @@ from openai import OpenAI
 
 from clip_ranker import ClipRanker
 from content_strategist import ContentStrategist
+from media_selector import MediaSelector
 from pexels_media import PexelsMediaGetter
 from scene_designer import SceneDesigner
 from story_evaluator import StoryEvaluator
 from story_generator import StoryGenerator
 from story_rewriter import StoryRewriter
 from story_storage import save_story_record
+from video_pipeline import StoryVideoPipeline
 from youtube_researcher import YouTubeResearcher
 
 load_dotenv()
@@ -23,9 +25,11 @@ clip_ranker = ClipRanker()
 generator = StoryGenerator(client)
 evaluator = StoryEvaluator(client)
 rewriter = StoryRewriter(client)
+media_selector = MediaSelector(client)
 researcher = YouTubeResearcher()
 strategist = ContentStrategist(client)
 scene_designer = SceneDesigner(client)
+video_pipeline = StoryVideoPipeline(client)
 
 PASS_THRESHOLD = 7
 MAX_REVISIONS = 3
@@ -43,9 +47,10 @@ def story_passes(evaluation):
 research = researcher.research(
     query=os.getenv("YOUTUBE_SEARCH_QUERY", "short form storytelling")
 )
-strategy = strategist.create_strategy(research)
 
 print("\n===== CONTENT STRATEGY =====\n")
+strategy = strategist.create_strategy(research)
+
 print(json.dumps(strategy, indent=2))
 
 story = generator.generate_story(strategy)
@@ -108,6 +113,27 @@ if passed:
 
     print("\n===== CLIP RANKED MEDIA =====\n")
     print(json.dumps(ranked_media_plan, indent=2))
+
+    final_media_plan = []
+    for scene, ranked_scene in zip(scene_plan["scenes"], ranked_media_plan):
+        final_media_plan.append(
+            media_selector.select_scene_image(
+                scene,
+                ranked_scene["ranked_images"],
+            )
+        )
+
+    print("\n===== FINAL MEDIA SELECTION =====\n")
+    print(json.dumps(final_media_plan, indent=2))
+
+    render_result = video_pipeline.render_story_video(
+        story=story,
+        final_media_plan=final_media_plan,
+        output_dir="output/rendered",
+    )
+
+    print("\n===== STORY VIDEO =====")
+    print(json.dumps(render_result, indent=2))
 
     memory_file, published_file = save_story_record(revision_history, story, evaluation)
 
