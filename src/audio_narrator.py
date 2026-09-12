@@ -1,6 +1,7 @@
 import os
 import re
-import wave
+import shutil
+import subprocess
 from pathlib import Path
 
 from openai import OpenAI
@@ -70,6 +71,29 @@ class NarrationEngine:
         response.stream_to_file(str(output_path))
         return output_path
 
+    @staticmethod
+    def _read_audio_duration(audio_path: Path) -> float:
+        ffprobe_path = shutil.which("ffprobe")
+        if not ffprobe_path:
+            return 0.0
+
+        result = subprocess.run(
+            [
+                ffprobe_path,
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                str(audio_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return float(result.stdout.strip())
+
     def build_scene_narration(
         self, story: str, scene_count: int, output_dir: str | Path
     ):
@@ -83,10 +107,7 @@ class NarrationEngine:
             audio_path = output_dir / f"scene_{index}_narration.wav"
             self.generate_audio(segment, audio_path)
 
-            with wave.open(str(audio_path), "rb") as audio_file:
-                sample_rate = audio_file.getframerate()
-                frame_count = audio_file.getnframes()
-                duration = frame_count / sample_rate if sample_rate else 0.0
+            duration = self._read_audio_duration(audio_path)
 
             if duration <= 0 or duration > 1000:
                 duration = self._estimate_duration_seconds(segment)
