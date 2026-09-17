@@ -109,8 +109,67 @@ class VideoAssembler:
             "+faststart",
             str(output_file),
         ]
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        result = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            print("\n===== FFMPEG ERROR =====\n")
+            print(result.stderr)
+            raise RuntimeError("FFmpeg failed while assembling the final video.")
         return output_file
+
+    def burn_subtitles(
+        self,
+        video_path: str | Path,
+        subtitle_path: str | Path,
+        output_path: str | Path,
+    ):
+        video_path = Path(video_path)
+        subtitle_path = Path(subtitle_path)
+        output_path = Path(output_path)
+
+        subtitle_filter_path = (
+            str(subtitle_path)
+            .replace("\\", "/")
+            .replace(":", "\\:")
+        )
+
+        command = [
+            self.ffmpeg_path,
+            "-y",
+            "-i",
+            str(video_path),
+            "-vf",
+            (
+                f"subtitles='{subtitle_filter_path}':"
+                "force_style="
+                "'FontName=Arial,"
+                "FontSize=18,"
+                "PrimaryColour=&H00FFFFFF,"
+                "OutlineColour=&H00000000,"
+                "BorderStyle=1,"
+                "Outline=3,"
+                "Shadow=1,"
+                "Alignment=2,"
+                "MarginV=100'"
+            ),
+            "-c:v",
+            "libx264",
+            "-crf",
+            "23",
+            "-preset",
+            "medium",
+            "-c:a",
+            "copy",
+            str(output_path),
+        ]
+
+        subprocess.run(command, check=True)
+        return str(output_path)
 
     def build_scene_video(self, image_path, narration_audio, output_path, duration):
         return self._create_scene_clip(

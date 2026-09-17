@@ -1,0 +1,50 @@
+[
+  {
+    "scene_number": 1,
+    "narration_text": "Every afternoon, Lena sat behind the counter of her tiny bookstore, watching the streets fill with people who never came inside. The rent was overdue again, and the stack of unsold books grew taller. She\u2019d inherited the shop from her grandmother, and closing it felt like closing a chapter of her own life.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_1_narration.wav",
+    "duration_seconds": 17.65
+  },
+  {
+    "scene_number": 2,
+    "narration_text": "One day, a familiar customer, an elderly man named Mr. Jacobs, asked if she\u2019d consider joining the town\u2019s new digital reading app. Lena had resisted\u2014it felt like admitting defeat, replacing printed pages with screens.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_2_narration.wav",
+    "duration_seconds": 15.1
+  },
+  {
+    "scene_number": 3,
+    "narration_text": "But the rent reminder slipped under her door that morning made the decision impossible. So, she signed up.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_3_narration.wav",
+    "duration_seconds": 6.45
+  },
+  {
+    "scene_number": 4,
+    "narration_text": "At first, sales ticked up online but foot traffic dwindled. The charm of her handpicked shelves wasn\u2019t translating to a screen.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_4_narration.wav",
+    "duration_seconds": 9.2
+  },
+  {
+    "scene_number": 5,
+    "narration_text": "Then, a message popped up on the app: \u201cYour grandmother\u2019s mystery novels changed my life.\u201d Lena looked closer. It was from a teenager two towns over.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_5_narration.wav",
+    "duration_seconds": 10.75
+  },
+  {
+    "scene_number": 6,
+    "narration_text": "A spark lit inside her. Instead of just selling books digitally, she started hosting live online discussions, sharing stories about her grandmother\u2019s old handwritten notes and the secrets behind those novels.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_6_narration.wav",
+    "duration_seconds": 14.25
+  },
+  {
+    "scene_number": 7,
+    "narration_text": "Readers joined from everywhere, sending questions, sharing their own tales. Her bookstore on the street wasn\u2019t packed, but the community had expanded beyond the walls.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_7_narration.wav",
+    "duration_seconds": 10.05
+  },
+  {
+    "scene_number": 8,
+    "narration_text": "Rent was still a challenge, but Lena realized something: the shop wasn\u2019t just a place, it was a story\u2014and stories could grow anywhere, even through a screen. She decided to keep both worlds alive, one book at a time.",
+    "audio_path": "C:\\Users\\sathv\\OneDrive\\Desktop\\Project-StoryLoop\\output\\current_run\\rendered\\audio\\scene_8_narration.wav",
+    "duration_seconds": 13.45
+  }
+]

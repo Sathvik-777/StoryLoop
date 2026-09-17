@@ -26,7 +26,7 @@ Return ONLY valid JSON in this format:
   "theme": "string",
   "tone": "string",
   "format": "string",
-  "duration_seconds": 45,
+  "duration_seconds": "number",
   "reason": "string",
   "creative_constraints": ["string"],
   "story_concept": "string"

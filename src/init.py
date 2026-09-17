@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from run_artifacts import reset_run, save_json, save_text
 
+
 load_dotenv()
 
 run_dir = reset_run()
@@ -11,7 +12,6 @@ run_dir = reset_run()
 from openai import OpenAI
 
 from clip_ranker import ClipRanker
-from content_strategist import ContentStrategist
 from media_selector import MediaSelector
 from pexels_media import PexelsMediaGetter
 from scene_designer import SceneDesigner
@@ -20,7 +20,6 @@ from story_generator import StoryGenerator
 from story_rewriter import StoryRewriter
 from story_storage import save_story_record
 from video_pipeline import StoryVideoPipeline
-from youtube_researcher import YouTubeResearcher
 
 client = OpenAI()
 
@@ -30,8 +29,6 @@ generator = StoryGenerator(client)
 evaluator = StoryEvaluator(client)
 rewriter = StoryRewriter(client)
 media_selector = MediaSelector(client)
-researcher = YouTubeResearcher()
-strategist = ContentStrategist(client)
 scene_designer = SceneDesigner(client)
 video_pipeline = StoryVideoPipeline(client)
 
@@ -48,18 +45,8 @@ def story_passes(evaluation):
     )
 
 
-research = researcher.research(
-    query=os.getenv("YOUTUBE_SEARCH_QUERY", "short form storytelling")
-)
-save_json("01_research.json", research)
-
-print("\n===== CONTENT STRATEGY =====\n")
-strategy = strategist.create_strategy(research)
-save_json("02_content_strategy.json", strategy)
-
-print(json.dumps(strategy, indent=2))
-
-story = generator.generate_story(strategy)
+print("\n===== STORY GENERATION =====\n")
+story = generator.generate_story()
 save_text("03_story_versions/version_1_generated.txt", story)
 
 revision_history = []
@@ -149,12 +136,25 @@ if passed:
     print("\n===== FINAL MEDIA SELECTION =====\n")
     print(json.dumps(final_media_plan, indent=2))
 
+    narration_plan = video_pipeline.narrator.build_scene_narration(
+        story=story,
+        scene_count=len(final_media_plan),
+        output_dir=run_dir / "rendered" / "audio",
+    )
+
+    save_json("08_narration_plan.json", narration_plan)
+
+    print("\n===== NARRATION PLAN =====\n")
+    print(json.dumps(narration_plan, indent=2))
+
     render_result = video_pipeline.render_story_video(
         story=story,
         final_media_plan=final_media_plan,
+        narration_plan=narration_plan,
         output_dir=run_dir / "rendered",
     )
-    save_json("08_render_result.json", render_result)
+
+    save_json("10_render_result.json", render_result)
 
     print("\n===== STORY VIDEO =====")
     print(json.dumps(render_result, indent=2))

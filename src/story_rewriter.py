@@ -27,7 +27,9 @@ IMPROVE:
 - The overall emotional impact
 - The ending/payoff when necessary
 
-Keep the story suitable for 30 to 90 seconds of voiceover.
+Keep the story under two minutes, approximately 75 to 110 seconds of voiceover.
+Preserve a complete narrative arc with connected events, escalation, a turning point,
+consequences, and a meaningful ending. Do not reduce it to a short incident or summary.
 
 ORIGINAL STORY:
 {story}

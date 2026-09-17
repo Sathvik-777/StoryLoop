@@ -11,8 +11,6 @@ from run_artifacts import RUN_DIR, save_json, save_text
 
 
 STAGES = [
-    ("youtube", "YouTube research"),
-    ("strategy", "Content strategy"),
     ("generation", "Story generation"),
     ("evaluation", "Story evaluation and revision"),
     ("scene_design", "Scene design"),
@@ -20,6 +18,7 @@ STAGES = [
     ("clip", "CLIP image ranking"),
     ("selection", "Final image selection"),
     ("narration", "Narration generation"),
+    ("subtitles", "Subtitle generation"),
     ("rendering", "Video rendering"),
 ]
 
@@ -75,26 +74,10 @@ def download_selected_images(final_media_plan: list[dict], rendered_dir: Path) -
 
 
 def run_stage(stage: str, client: OpenAI) -> None:
-    if stage == "youtube":
-        from youtube_researcher import YouTubeResearcher
-
-        researcher = YouTubeResearcher()
-        research = researcher.research(
-            query=os.getenv("YOUTUBE_SEARCH_QUERY", "short form storytelling")
-        )
-        save_json("01_research.json", research)
-
-    elif stage == "strategy":
-        from content_strategist import ContentStrategist
-
-        strategy = ContentStrategist(client).create_strategy(load_json("01_research.json"))
-        save_json("02_content_strategy.json", strategy)
-
-    elif stage == "generation":
+    if stage == "generation":
         from story_generator import StoryGenerator
 
-        strategy = load_json("02_content_strategy.json")
-        story = StoryGenerator(client).generate_story(strategy)
+        story = StoryGenerator(client).generate_story()
         save_text("03_story_versions/version_1_generated.txt", story)
         save_text("03_story_versions/version_1_story.txt", story)
 
@@ -182,13 +165,39 @@ def run_stage(stage: str, client: OpenAI) -> None:
             RUN_DIR / "rendered" / "audio",
         )
         save_json("08_narration_plan.json", narration)
+        
+    elif stage == "subtitles":
+        from subtitle_generator import SubtitleGenerator
+
+        narration_plan = load_json("08_narration_plan.json")
+
+        subtitle_path = RUN_DIR / "09_subtitles.srt"
+
+        SubtitleGenerator().generate_srt(
+            narration_plan=narration_plan,
+            output_path=subtitle_path,
+        )
+
+        print(f"Subtitles saved: {subtitle_path}")
 
     elif stage == "rendering":
+        from video_pipeline import StoryVideoPipeline
+
         final_media = load_json("07_final_media_selection.json")
+        narration_plan = load_json("08_narration_plan.json")
+
+        video_pipeline = StoryVideoPipeline(client)
+
         rendered_dir = RUN_DIR / "rendered"
-        download_selected_images(final_media, rendered_dir)
-        refine_videos(rendered_dir, rendered_dir)
-        save_json("09_render_result.json", {"status": "rendered", "output": str(rendered_dir / "story_video.mp4")})
+
+        result = video_pipeline.render_story_video(
+            story=latest_story(),
+            final_media_plan=final_media,
+            narration_plan=narration_plan,
+            output_dir=rendered_dir,
+        )
+
+        save_json("10_render_result.json", result)
 
 
 def main() -> None:

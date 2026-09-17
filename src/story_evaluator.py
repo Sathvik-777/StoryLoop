@@ -11,7 +11,8 @@ class StoryEvaluator:
         prompt = f"""
 You are a strict editor evaluating a short-form social media story.
 
-Evaluate the following story for a target video length between 30 and 90 seconds.
+Evaluate the following story for a target video length under two minutes,
+approximately 75 to 110 seconds.
 
 STORY:
 {story}
@@ -39,6 +40,7 @@ Also provide:
 - strengths: 2-3 short points
 - weaknesses: 2-3 short points
 - improvement: one concise recommendation
+- narrative_completeness: whether this is a developed story rather than a single incident
 
 Return ONLY valid JSON in this format:
 
@@ -50,6 +52,7 @@ Return ONLY valid JSON in this format:
     "payoff": 0,
     "originality": 0,
     "voiceover_suitability": 0,
+    "narrative_completeness": 0,
     "overall_score": 0,
     "verdict": "PASS",
     "strengths": [],

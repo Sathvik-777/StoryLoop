@@ -9,7 +9,7 @@ from transformers import CLIPModel, CLIPProcessor
 class ClipRanker:
     def __init__(self, model_name="openai/clip-vit-base-patch32"):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.processor = CLIPProcessor.from_pretrained(model_name)
+        self.processor = CLIPProcessor.from_pretrained(model_name,use_fast=True)
         self.model = CLIPModel.from_pretrained(model_name).to(self.device)
         self.model.eval()
 

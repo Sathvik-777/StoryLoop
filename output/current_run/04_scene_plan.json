@@ -1,0 +1,174 @@
+{
+  "visual_style": "realistic stock footage",
+  "media_preference": "video",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "story_beat": "Lena sitting behind the counter of her small bookstore, watching busy street outside filled with people who do not enter",
+      "visual_requirement": "A young woman sitting at a small bookstore counter looking out a window at a busy street with pedestrians walking by but not entering",
+      "subject": "young woman in bookstore",
+      "action": "sitting, watching street",
+      "environment": "cozy small bookstore with shelves and books, street visible through window",
+      "mood": "thoughtful, slightly melancholy",
+      "shot_type": "medium shot",
+      "media_type": "video",
+      "search_queries": [
+        "woman in bookstore",
+        "small bookstore interior",
+        "woman looking out bookstore window"
+      ],
+      "fallback_queries": [
+        "bookstore interior",
+        "person looking outside window"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 2,
+      "story_beat": "Lena receiving a rent notice slipped under the bookstore door, looking concerned as she checks tall stack of unsold books",
+      "visual_requirement": "Young woman picking up a letter slipped under a door inside a bookstore, surrounded by tall piles of books on the floor or counter",
+      "subject": "woman in bookstore with letter",
+      "action": "receiving and reading rent notice, looking worried",
+      "environment": "small bookstore interior cluttered with books",
+      "mood": "worried, tense",
+      "shot_type": "close up and over the shoulder",
+      "media_type": "video",
+      "search_queries": [
+        "woman opening letter",
+        "letter under door",
+        "stacks of books indoor"
+      ],
+      "fallback_queries": [
+        "woman reading paper",
+        "books piled up"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 3,
+      "story_beat": "Mr. Jacobs, an elderly man, talks to Lena in her bookstore suggesting she join a digital reading app",
+      "visual_requirement": "An elderly man speaking to a young woman behind a bookstore counter, engaging in friendly conversation",
+      "subject": "elderly man and young woman in bookstore",
+      "action": "talking, negotiating",
+      "environment": "small bookstore interior with shelves and counters",
+      "mood": "hopeful, earnest",
+      "shot_type": "medium two shot",
+      "media_type": "video",
+      "search_queries": [
+        "elderly man talking to woman",
+        "bookstore conversation",
+        "man woman talking indoor"
+      ],
+      "fallback_queries": [
+        "older man talking to younger woman",
+        "indoor conversation"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 4,
+      "story_beat": "Lena signing up on laptop for the digital reading app, looking reluctant but determined",
+      "visual_requirement": "Young woman typing on laptop at counter inside bookstore, with a slight hesitant expression",
+      "subject": "woman using laptop in bookstore",
+      "action": "typing, signing up online",
+      "environment": "bookstore interior with laptop on counter",
+      "mood": "reluctant, determined",
+      "shot_type": "close up on laptop and face",
+      "media_type": "video",
+      "search_queries": [
+        "woman using laptop",
+        "typing on laptop indoor",
+        "business owner signing up online"
+      ],
+      "fallback_queries": [
+        "woman working on computer",
+        "person typing on laptop"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 5,
+      "story_beat": "Online book sales increase but bookstore remains empty, Lena looks at the empty store shelves sadly",
+      "visual_requirement": "Young woman standing alone in empty bookstore, looking around at shelves, appearing thoughtful or sad",
+      "subject": "woman alone in empty bookstore",
+      "action": "looking around, reflecting",
+      "environment": "small bookstore interior with empty or half-empty shelves",
+      "mood": "disappointed, reflective",
+      "shot_type": "wide shot",
+      "media_type": "video",
+      "search_queries": [
+        "empty bookstore interior",
+        "woman standing alone in bookstore",
+        "quiet bookstore"
+      ],
+      "fallback_queries": [
+        "empty store interior",
+        "person alone inside store"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 6,
+      "story_beat": "Lena reading a message on the app from a teenager appreciating her grandmother\u2019s mystery novels, showing sparkle of hope",
+      "visual_requirement": "Close up of young woman reading a message on a tablet or smartphone with the text visible, smiling slightly",
+      "subject": "woman reading message on digital device",
+      "action": "reading, smiling",
+      "environment": "indoor bookstore or neutral interior",
+      "mood": "hopeful, inspired",
+      "shot_type": "close up on face and device",
+      "media_type": "video",
+      "search_queries": [
+        "woman reading message phone",
+        "smiling at phone",
+        "reading tablet indoors"
+      ],
+      "fallback_queries": [
+        "person looking at smartphone",
+        "woman happy with message"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 7,
+      "story_beat": "Lena hosting live online book discussions, animated and engaged, with multiple participant icons visible on screen",
+      "visual_requirement": "Young woman on laptop hosting video call or live stream, animatedly talking with screen showing multiple participant icons or windows",
+      "subject": "woman hosting online discussion",
+      "action": "talking, gesturing online",
+      "environment": "bookstore or home office interior",
+      "mood": "engaged, lively",
+      "shot_type": "medium shot with screen overlay concept",
+      "media_type": "video",
+      "search_queries": [
+        "woman video calling laptop",
+        "online meeting woman",
+        "live stream discussion"
+      ],
+      "fallback_queries": [
+        "woman talking on computer",
+        "video conference woman"
+      ],
+      "stock_feasibility": "high"
+    },
+    {
+      "scene_number": 8,
+      "story_beat": "Lena balancing physical bookstore and digital community, content and hopeful, surrounded by books with digital devices visible",
+      "visual_requirement": "Young woman happily working in bookstore with books around her and laptop or smartphone on counter, looking confident",
+      "subject": "woman in bookstore with books and technology",
+      "action": "smiling, organizing, multitasking",
+      "environment": "cozy bookstore interior with modern devices present",
+      "mood": "hopeful, balanced, optimistic",
+      "shot_type": "wide-medium shot",
+      "media_type": "video",
+      "search_queries": [
+        "woman working in bookstore with laptop",
+        "small bookstore with technology",
+        "business owner in cozy store"
+      ],
+      "fallback_queries": [
+        "woman smiling in store",
+        "person working with books and computer"
+      ],
+      "stock_feasibility": "high"
+    }
+  ]
+}
