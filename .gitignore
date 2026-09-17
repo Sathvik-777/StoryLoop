@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# StoryLoop generated artifacts
+output/current_run/
+output/rendered/
+output/published/
+output/09_subtitles.srt
+
+# Generated story memory
+memory/
