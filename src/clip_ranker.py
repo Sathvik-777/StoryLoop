@@ -21,10 +21,13 @@ class ClipRanker:
             }
 
         scene_text = self._scene_text(scene)
+        max_text_length = self.model.config.text_config.max_position_embeddings
         text_inputs = self.processor(
             text=[scene_text],
             return_tensors="pt",
             padding=True,
+            truncation=True,
+            max_length=max_text_length,
         ).to(self.device)
 
         with torch.no_grad():

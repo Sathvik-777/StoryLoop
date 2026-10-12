@@ -152,10 +152,10 @@ class StoryVideoPipeline:
 
         subtitle_path = (
             target_dir.parent.parent
-            / "09_subtitles.srt"
+            / "09_subtitles.ass"
         )
 
-        self.subtitle_generator.generate_srt(
+        self.subtitle_generator.generate_ass(
             narration_plan=narration_plan,
             output_path=subtitle_path,
         )

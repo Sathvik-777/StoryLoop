@@ -1,3 +1,4 @@
+
 from pathlib import Path
 
 import whisperx
@@ -20,20 +21,29 @@ class SubtitleGenerator:
 
     @staticmethod
     def _format_timestamp(seconds: float) -> str:
-        milliseconds = int(round(seconds * 1000))
+        centiseconds = max(0, round(seconds * 100))
 
-        hours = milliseconds // 3_600_000
-        milliseconds %= 3_600_000
+        hours = centiseconds // 360000
+        centiseconds %= 360000
 
-        minutes = milliseconds // 60_000
-        milliseconds %= 60_000
+        minutes = centiseconds // 6000
+        centiseconds %= 6000
 
-        seconds = milliseconds // 1000
-        milliseconds %= 1000
+        whole_seconds = centiseconds // 100
+        centiseconds %= 100
 
         return (
-            f"{hours:02d}:{minutes:02d}:{seconds:02d},"
-            f"{milliseconds:03d}"
+            f"{hours}:{minutes:02d}:"
+            f"{whole_seconds:02d}.{centiseconds:02d}"
+        )
+
+    @staticmethod
+    def _escape_ass_text(text: str) -> str:
+        return (
+            text.replace("\\", r"\\")
+            .replace("{", r"\{")
+            .replace("}", r"\}")
+            .replace("\n", " ")
         )
 
     def _load_models(self, language: str):
@@ -45,24 +55,26 @@ class SubtitleGenerator:
             )
 
         if self.align_model is None:
-            (
-                self.align_model,
-                self.metadata,
-            ) = whisperx.load_align_model(
-                language_code=language,
-                device=self.device,
+            self.align_model, self.metadata = (
+                whisperx.load_align_model(
+                    language_code=language,
+                    device=self.device,
+                )
             )
 
     @staticmethod
     def _group_words(
         words: list[dict],
-        max_words: int = 6,
-        max_duration: float = 3.0,
+        max_words: int = 4,
+        max_duration: float = 1.8,
     ) -> list[dict]:
         groups = []
         current = []
 
         for word in words:
+            if not word.get("word", "").strip():
+                continue
+
             if not current:
                 current.append(word)
                 continue
@@ -71,40 +83,84 @@ class SubtitleGenerator:
                 word["end"] - current[0]["start"]
             )
 
+            previous_text = current[-1]["word"].strip()
+            ends_sentence = previous_text.endswith(
+                (".", "!", "?", "…")
+            )
+
             if (
                 len(current) >= max_words
                 or current_duration > max_duration
+                or ends_sentence
             ):
-                groups.append(
-                    {
-                        "start": current[0]["start"],
-                        "end": current[-1]["end"],
-                        "text": " ".join(
-                            item["word"].strip()
-                            for item in current
-                        ),
-                    }
-                )
-
+                groups.append(current)
                 current = [word]
             else:
                 current.append(word)
 
         if current:
-            groups.append(
-                {
-                    "start": current[0]["start"],
-                    "end": current[-1]["end"],
-                    "text": " ".join(
-                        item["word"].strip()
-                        for item in current
-                    ),
-                }
+            groups.append(current)
+
+        return [
+            {
+                "start": group[0]["start"],
+                "end": group[-1]["end"],
+                "words": [
+                    {
+                        "word": item["word"].strip(),
+                        "start": item["start"],
+                        "end": item["end"],
+                    }
+                    for item in group
+                ],
+            }
+            for group in groups
+        ]
+
+    @staticmethod
+    def _karaoke_text(words: list[dict]) -> str:
+        parts = []
+
+        for index, word in enumerate(words):
+            duration = max(
+                1,
+                round(
+                    (word["end"] - word["start"]) * 100
+                ),
             )
 
-        return groups
+            text = SubtitleGenerator._escape_ass_text(
+                word["word"]
+            )
 
-    def generate_srt(
+            # Highlight each word as it is spoken.
+            parts.append(f"{{\\kf{duration}}}{text}")
+
+            if index < len(words) - 1:
+                parts.append(" ")
+
+        return "".join(parts)
+
+    @staticmethod
+    def _ass_header() -> str:
+        return """[Script Info]
+Title: StoryLoop Animated Captions
+ScriptType: v4.00+
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+PlayResX: 1080
+PlayResY: 1920
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,68,&H0000FFFF,&H00FFFFFF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,5,2,2,90,90,310,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+
+    def generate_ass(
         self,
         narration_plan: list[dict],
         output_path: str | Path,
@@ -126,9 +182,7 @@ class SubtitleGenerator:
                     f"Narration audio not found: {audio_path}"
                 )
 
-            audio = whisperx.load_audio(
-                str(audio_path)
-            )
+            audio = whisperx.load_audio(str(audio_path))
 
             if self.model is None:
                 self.model = whisperx.load_model(
@@ -138,14 +192,12 @@ class SubtitleGenerator:
                 )
 
             result = self.model.transcribe(
-                
                 audio,
-                language = "en",
+                language="en",
                 batch_size=4,
             )
 
             language = result["language"]
-
             self._load_models(language)
 
             aligned = whisperx.align(
@@ -157,25 +209,19 @@ class SubtitleGenerator:
                 return_char_alignments=False,
             )
 
-            words = aligned.get(
-                "word_segments",
-                [],
-            )
-
+            words = aligned.get("word_segments", [])
             grouped = self._group_words(words)
 
             for subtitle in grouped:
                 all_subtitles.append(
                     {
                         "start": (
-                            subtitle["start"]
-                            + scene_offset
+                            subtitle["start"] + scene_offset
                         ),
                         "end": (
-                            subtitle["end"]
-                            + scene_offset
+                            subtitle["end"] + scene_offset
                         ),
-                        "text": subtitle["text"],
+                        "words": subtitle["words"],
                     }
                 )
 
@@ -183,21 +229,32 @@ class SubtitleGenerator:
                 scene["duration_seconds"]
             )
 
-        with open(
-            output_path,
+        with output_path.open(
             "w",
-            encoding="utf-8",
-        ) as f:
-            for index, subtitle in enumerate(
-                all_subtitles,
-                start=1,
-            ):
-                f.write(
-                    f"{index}\n"
-                    f"{self._format_timestamp(subtitle['start'])}"
-                    f" --> "
-                    f"{self._format_timestamp(subtitle['end'])}\n"
-                    f"{subtitle['text']}\n\n"
+            encoding="utf-8-sig",
+            newline="\n",
+        ) as file:
+            file.write(self._ass_header())
+
+            for subtitle in all_subtitles:
+                start = self._format_timestamp(
+                    subtitle["start"]
+                )
+                end = self._format_timestamp(
+                    subtitle["end"]
+                )
+                
+                text = (
+                    r"{\fad(120,100)\fscx85\fscy85"
+                    r"\t(0,140,\fscx100\fscy100)}"
+                    + self._karaoke_text(subtitle["words"])
+                )
+                
+                file.write(
+                    "Dialogue: 0,"
+                    f"{start},{end},Default,,"
+                    "0,0,0,,"
+                    f"{text}\n"
                 )
 
         return str(output_path)

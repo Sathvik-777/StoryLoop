@@ -3,6 +3,8 @@ import os
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from api_cost_tracker import get_cost_tracker
+
 
 class PexelsMediaGetter:
     API_URL = "https://api.pexels.com/v1/search"
@@ -33,6 +35,9 @@ class PexelsMediaGetter:
             },
         )
 
+        get_cost_tracker().record_external_api(
+            "Pexels", "GET /v1/search", note="Free API request; rate-limited by Pexels"
+        )
         with urlopen(request, timeout=30) as response:
             data = json.load(response)
 

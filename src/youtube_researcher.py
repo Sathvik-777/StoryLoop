@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from api_cost_tracker import get_cost_tracker
+
 
 class YouTubeResearcher:
     """Collect recent, short YouTube videos ranked by public view count."""
@@ -98,6 +100,12 @@ class YouTubeResearcher:
     def _request(self, resource: str, parameters: dict) -> dict:
         parameters["key"] = self.api_key
         url = f"{self.API_URL}/{resource}?{urlencode(parameters)}"
+        get_cost_tracker().record_external_api(
+            "YouTube Data API",
+            f"{resource}.list",
+            quota_units=1,
+            note="No direct USD charge; 1 quota unit tracked",
+        )
         with urlopen(url, timeout=30) as response:
             return json.load(response)
 

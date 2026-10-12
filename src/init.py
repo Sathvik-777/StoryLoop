@@ -1,15 +1,17 @@
 import json
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from run_artifacts import reset_run, save_json, save_text
+from api_cost_tracker import start_cost_tracking
+from tracked_openai import TrackedOpenAIClient
 
 
 load_dotenv()
 
 run_dir = reset_run()
-
-from openai import OpenAI
+cost_tracker = start_cost_tracking(run_dir)
 
 from clip_ranker import ClipRanker
 from media_selector import MediaSelector
@@ -20,8 +22,9 @@ from story_generator import StoryGenerator
 from story_rewriter import StoryRewriter
 from story_storage import save_story_record
 from video_pipeline import StoryVideoPipeline
+from script_parameters import load_publish_parameter
 
-client = OpenAI()
+client = TrackedOpenAIClient()
 
 pexels = PexelsMediaGetter()
 clip_ranker = ClipRanker()
@@ -33,68 +36,68 @@ scene_designer = SceneDesigner(client)
 video_pipeline = StoryVideoPipeline(client)
 
 PASS_THRESHOLD = 7
-MAX_REVISIONS = 3
+MAX_REVISIONS = 1
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SCRIPT_PARAMETERS_FILE = PROJECT_ROOT / "script_parameters.json"
 
 
 def story_passes(evaluation):
-    return (
-        evaluation["overall_score"] >= PASS_THRESHOLD
-        and evaluation["hook"] >= PASS_THRESHOLD
-        and evaluation["payoff"] >= PASS_THRESHOLD
-        and evaluation["pacing"] >= 6
-    )
+    return evaluation.get("verdict") == "PASS"
 
 
 print("\n===== STORY GENERATION =====\n")
 story = generator.generate_story()
-save_text("03_story_versions/version_1_generated.txt", story)
+metadata = dict(generator.last_metadata)
+original_story = story
+save_text("03_story_versions/version_1_generated.txt", original_story)
 
-revision_history = []
+initial_evaluation = evaluator.evaluate_story(original_story, metadata=metadata)
+save_text("03_story_versions/version_1_story.txt", original_story)
+save_json("03_story_versions/version_1_evaluation.json", initial_evaluation)
+revision_history = [
+    {"version": 1, "story": original_story, "evaluation": initial_evaluation}
+]
+story = original_story
+evaluation = initial_evaluation
+acceptance = None
 passed = False
 
-for revision in range(MAX_REVISIONS + 1):
-
-    print(f"\n===== VERSION {revision + 1} =====\n")
-    print(story)
-
-    evaluation = evaluator.evaluate_story(story)
-    save_text(
-        f"03_story_versions/version_{revision + 1}_story.txt",
-        story,
+if initial_evaluation.get("verdict") == "REWRITE" and MAX_REVISIONS:
+    revision = rewriter.rewrite_story(
+        original_story, initial_evaluation, metadata=metadata
+    )
+    save_text("03_story_versions/version_2_rewrite_candidate.txt", revision)
+    acceptance = rewriter.choose_better(
+        original=original_story, revision=revision, metadata=metadata
     )
     save_json(
-        f"03_story_versions/version_{revision + 1}_evaluation.json",
-        evaluation,
+        "03_story_versions/version_2_acceptance_decision.json",
+        {key: value for key, value in acceptance.items() if key != "selected_story"},
     )
-
+    story = acceptance["selected_story"]
+    evaluation = evaluator.evaluate_story(story, metadata=metadata)
+    save_text("03_story_versions/version_2_selected_story.txt", story)
+    save_json("03_story_versions/version_2_selected_evaluation.json", evaluation)
     revision_history.append(
-        {"version": revision + 1, "story": story, "evaluation": evaluation}
+        {
+            "version": 2,
+            "story": story,
+            "evaluation": evaluation,
+            "acceptance": {key: value for key, value in acceptance.items()
+                           if key != "selected_story"},
+        }
     )
 
-    print("\n===== EVALUATION =====\n")
-
-    for key, value in evaluation.items():
-        print(f"{key}: {value}")
-
-    if story_passes(evaluation):
-
-        print("\n✅ STORY PASSED")
-        print(f"Final version: {revision + 1}")
-        passed = True
-        break
-
-    if revision == MAX_REVISIONS:
-
-        print("\n❌ STORY FAILED AFTER MAXIMUM REVISIONS")
-        break
-
-    print(f"\n🔄 Story failed. " f"Rewriting... ({revision + 1}/{MAX_REVISIONS})")
-
-    story = rewriter.rewrite_story(story, evaluation)
-    save_text(
-        f"03_story_versions/version_{revision + 2}_rewritten.txt",
-        story,
-    )
+passed = story_passes(evaluation)
+print("\n===== FINAL STORY DECISION =====\n")
+print(json.dumps(evaluation, indent=2))
+print(f"Final story word count: {len(story.split())}")
+print(f"Revision accepted: {bool(acceptance and acceptance.get('winner') == 'B')}")
+print(
+    "Story-stage API calls: "
+    f"generator={generator.api_calls}, "
+    f"evaluator={evaluator.api_calls}, rewriter/judge={rewriter.api_calls}"
+)
 
 if passed:
     scene_plan = scene_designer.design_scenes(story)
@@ -159,6 +162,25 @@ if passed:
     print("\n===== STORY VIDEO =====")
     print(json.dumps(render_result, indent=2))
 
+    if render_result.get("status") == "rendered":
+        if load_publish_parameter(SCRIPT_PARAMETERS_FILE):
+            from youtube_publisher import YouTubePublisher
+
+            print("\n===== YOUTUBE PUBLISHING =====")
+            upload_result = YouTubePublisher().upload_video(
+                video_path=render_result["output_file"],
+                title="StoryLoop generated story",
+                description=story,
+                tags=["StoryLoop", "short story", "storytelling"],
+                privacy_status="public",
+            )
+            save_json("11_youtube_upload.json", upload_result)
+            print(json.dumps(upload_result, indent=2))
+        else:
+            print("\nYouTube publishing skipped (Publish is false or unavailable).")
+    else:
+        print("\nYouTube publishing skipped (no rendered video was produced).")
+
     memory_file, published_file = save_story_record(revision_history, story, evaluation)
 
     print("\n===== STORYLOOP STORAGE =====")
@@ -167,3 +189,5 @@ if passed:
 
 else:
     print("\n❌ Story was not published.")
+
+print(f"\nAPI cost report: {cost_tracker.write_report()}")

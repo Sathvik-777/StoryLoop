@@ -57,14 +57,14 @@ If the story never passes, no scene/media work or publishing occurs.
 
 - `src/init.py`: procedural composition root and quality gate. It currently has no `main()` guard, CLI, dependency injection, or centralized error handling.
 - `src/youtube_researcher.py`: calls YouTube Data API v3. It searches the last 30 days, requests up to 50 results ordered by view count, discards videos at least 120 seconds long, calculates age/views-per-day/like ratio, sorts by raw views, and returns the top 10.
-- `src/content_strategist.py`: asks `gpt-4.1-mini` to select one researched source and return JSON containing `source_video_id`, `genre`, `theme`, `tone`, `format`, `duration_seconds`, `reason`, `creative_constraints`, and `story_concept`.
-- `src/story_generator.py`: consumes that strategy dictionary and returns story text from `gpt-4.1-mini`.
+- `src/content_strategist.py`: asks `gpt-5-mini` to select one researched source and return JSON containing `source_video_id`, `genre`, `theme`, `tone`, `format`, `duration_seconds`, `reason`, `creative_constraints`, and `story_concept`.
+- `src/story_generator.py`: consumes that strategy dictionary and returns story text from `gpt-5-mini`.
 - `src/story_evaluator.py`: returns JSON scores for hook, quality, pacing, suspense, payoff, originality, voiceover suitability, and overall score, plus verdict, strengths, weaknesses, and improvement advice.
 - `src/story_rewriter.py`: preserves the premise, characters, strongest material, genre, and tone while revising according to the evaluation.
 - `src/scene_designer.py`: returns JSON with `visual_style`, `media_preference`, and `scenes`. Each scene includes its number, story beat, visual requirement, subject, action, environment, mood, shot type, media type, primary and fallback queries, and stock feasibility.
 - `src/pexels_media.py`: queries Pexels image search with portrait orientation and normalizes image metadata. It searches `search_queries`; currently `fallback_queries` are generated but not used.
 - `src/clip_ranker.py`: loads `openai/clip-vit-base-patch32`, downloads each candidate URL, builds scene text from visual requirement/subject/action/environment/mood, computes normalized cosine-like CLIP scores, and assigns ranks.
-- `src/media_selector.py`: **untracked work in progress**. It sends the top three ranked candidates and actual images to `gpt-4.1-mini`, validates the returned ID, and returns the chosen image and reason.
+- `src/media_selector.py`: sends the top three ranked candidates and actual images to `gpt-5-mini`, validates the returned ID, and returns the chosen image and reason.
 - `src/story_storage.py`: writes timestamped plain-text files. `memory/` contains all evaluated versions and feedback; `output/published/` contains only the accepted story. Media plans and research/strategy provenance are not persisted yet.
 
 ## Runtime and configuration

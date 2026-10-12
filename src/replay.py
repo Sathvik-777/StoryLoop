@@ -4,7 +4,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from api_cost_tracker import start_cost_tracking
+from tracked_openai import TrackedOpenAIClient
 
 from refine_video import refine_videos
 from run_artifacts import RUN_DIR, save_json, save_text
@@ -165,15 +166,15 @@ def run_stage(stage: str, client: OpenAI) -> None:
             RUN_DIR / "rendered" / "audio",
         )
         save_json("08_narration_plan.json", narration)
-        
+         
     elif stage == "subtitles":
         from subtitle_generator import SubtitleGenerator
 
         narration_plan = load_json("08_narration_plan.json")
 
-        subtitle_path = RUN_DIR / "09_subtitles.srt"
+        subtitle_path = RUN_DIR / "09_subtitles.ass"
 
-        SubtitleGenerator().generate_srt(
+        SubtitleGenerator().generate_ass(
             narration_plan=narration_plan,
             output_path=subtitle_path,
         )
@@ -220,13 +221,15 @@ def main() -> None:
         print("Replay cancelled.")
         return
 
-    client = OpenAI()
+    cost_tracker = start_cost_tracking(RUN_DIR)
+    client = TrackedOpenAIClient()
     for stage, label in selected_stages:
         print(f"\n===== {label} =====")
         run_stage(stage, client)
         print(f"Completed: {label}")
 
     print("\nReplay completed.")
+    print(f"API cost report: {cost_tracker.write_report()}")
 
 
 if __name__ == "__main__":

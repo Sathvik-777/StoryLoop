@@ -6,7 +6,7 @@ from openai.types.responses import ResponseInputParam
 
 
 class MediaSelector:
-    def __init__(self, client: OpenAI, model="gpt-4.1-mini"):
+    def __init__(self, client: OpenAI, model="gpt-5-mini"):
         self.client = client
         self.model = model
 

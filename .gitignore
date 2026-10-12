@@ -225,3 +225,7 @@ output/09_subtitles.srt
 
 # Generated story memory
 memory/
+
+
+# YouTube OAuth credentials
+credentials\

@@ -6,6 +6,8 @@ from pathlib import Path
 
 from openai import OpenAI
 
+from tracked_openai import TrackedOpenAIClient
+
 
 class NarrationEngine:
     def __init__(
@@ -14,7 +16,7 @@ class NarrationEngine:
         model: str | None = None,
         voice: str = "alloy",
     ):
-        self.client = client or OpenAI()
+        self.client = client or TrackedOpenAIClient()
         self.model = model or os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
         self.voice = voice
 
