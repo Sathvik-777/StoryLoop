@@ -67,7 +67,12 @@ jobs:
           sudo apt-get install --yes --no-install-recommends ffmpeg
 
       - name: Install Python dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          # StoryLoop runs CPU inference; CUDA wheels exhaust the standard runner disk.
+          python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+            torch==2.8.0+cpu torchaudio==2.8.0+cpu torchvision==0.23.0+cpu
+          python -m pip install --no-cache-dir -r requirements.txt
 
       - name: Set YouTube publishing mode
         env:
@@ -241,5 +246,5 @@ jobs:
         with:
           name: storyloop-diagnostic-traceback
           path: ${{ runner.temp }}/storyloop-traceback.log
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 1
