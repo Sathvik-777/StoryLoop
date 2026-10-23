@@ -152,6 +152,26 @@ jobs:
           from pathlib import Path
 
           text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          traceback_path = Path(sys.argv[1]).with_name("storyloop-traceback.log")
+          traceback_start = next(
+              (
+                  index
+                  for index, line in enumerate(text.splitlines())
+                  if line.startswith("Traceback (most recent call last):")
+              ),
+              None,
+          )
+          if traceback_start is None:
+              traceback_path.write_text(
+                  "No Python traceback was present in the captured output.\n",
+                  encoding="utf-8",
+              )
+          else:
+              traceback_path.write_text(
+                  "\n".join(text.splitlines()[traceback_start:]) + "\n",
+                  encoding="utf-8",
+              )
+
           known_stages = (
               "STORY GENERATION",
               "FINAL STORY DECISION",
@@ -214,3 +234,12 @@ jobs:
             echo "::error::StoryLoop failed during ${stage:-unknown stage} (${exception_type:-unknown exception}); ${safe_cause:-connection detail unavailable}. Raw output is withheld."
             exit 1
           fi
+
+      - name: Upload diagnostic traceback
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && inputs.diagnostic }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: storyloop-diagnostic-traceback
+          path: ${{ runner.temp }}/storyloop-traceback.log
+          if-no-files-found: error
+          retention-days: 1
