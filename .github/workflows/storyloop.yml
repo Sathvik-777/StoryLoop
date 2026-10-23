@@ -172,8 +172,30 @@ jobs:
                   encoding="utf-8",
               )
           else:
+              traceback_text = "\n".join(text.splitlines()[traceback_start:]) + "\n"
+              traceback_text = re.sub(
+                  r"(?i)(Illegal header value b['\"]Bearer ).*?(['\"])",
+                  r"\1[REDACTED]\2",
+                  traceback_text,
+                  flags=re.DOTALL,
+              )
+              traceback_text = re.sub(
+                  r"(?i)(Bearer\s+)[^\s'\"\\]+",
+                  r"\1[REDACTED]",
+                  traceback_text,
+              )
+              traceback_text = re.sub(
+                  r"(?i)([?&](?:api[_-]?key|key|access_token|token|client_secret)=)[^&\s'\"]+",
+                  r"\1[REDACTED]",
+                  traceback_text,
+              )
+              traceback_text = re.sub(
+                  r"\b(?:sk-[A-Za-z0-9_-]{10,}|AIza[A-Za-z0-9_-]{30,})\b",
+                  "[REDACTED-API-KEY]",
+                  traceback_text,
+              )
               traceback_path.write_text(
-                  "\n".join(text.splitlines()[traceback_start:]) + "\n",
+                  traceback_text,
                   encoding="utf-8",
               )
 
