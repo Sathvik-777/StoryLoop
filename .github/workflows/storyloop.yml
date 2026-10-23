@@ -127,7 +127,7 @@ jobs:
         shell: bash
         run: |
           # The repository is public and the pipeline prints generated content.
-          # Keep raw output off public Actions logs and emit only a safe failure summary.
+          # Keep raw output private, but expose safe exception types and network categories.
           log_file="$RUNNER_TEMP/storyloop-output.log"
           if python -u src/init.py > "$log_file" 2>&1; then
             python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
@@ -166,26 +166,51 @@ jobs:
                   if f"===== {candidate} =====" in line:
                       stage = candidate.title()
 
-          exception_type = "Not identified"
-          for line in reversed(text.splitlines()):
-              match = re.match(r"^([A-Za-z_][A-Za-z0-9_.]*)(?::|$)", line.strip())
+          exception_chain = []
+          exception_text = []
+          for line in text.splitlines():
+              match = re.match(
+                  r"^([A-Za-z_][A-Za-z0-9_.]*)(?::\s*(.*)|$)",
+                  line.strip(),
+              )
               if not match:
                   continue
-              candidate = match.group(1).rsplit(".", 1)[-1]
-              if candidate.endswith(("Error", "Exception")) or candidate in {
+              exception_name = match.group(1)
+              short_name = exception_name.rsplit(".", 1)[-1]
+              if short_name.endswith(("Error", "Exception")) or short_name in {
                   "SystemExit", "KeyboardInterrupt"
               }:
-                  exception_type = candidate
+                  if short_name not in exception_chain:
+                      exception_chain.append(short_name)
+                  exception_text.append(match.group(2) or "")
+
+          exception_type = exception_chain[-1] if exception_chain else "Not identified"
+          details = " ".join(exception_text).lower()
+          safe_cause = "Underlying cause not classified"
+          cause_patterns = (
+              ("DNS name resolution failed", r"name resolution|getaddrinfo|name or service not known"),
+              ("Connection timed out", r"timed out|timeout"),
+              ("TLS or certificate failure", r"ssl|tls|certificate verify"),
+              ("Connection refused", r"connection refused"),
+              ("Connection reset", r"connection reset|forcibly closed"),
+              ("Network unreachable", r"network is unreachable|no route to host"),
+          )
+          for label, pattern in cause_patterns:
+              if re.search(pattern, details):
+                  safe_cause = label
                   break
 
           print("## StoryLoop diagnostic")
           print(f"- Last reported stage: {stage}")
           print(f"- Exception type: {exception_type}")
-          print("- Raw output is withheld; no exception message or generated content is shown.")
+          print(f"- Safe exception chain: {' -> '.join(exception_chain[-5:]) or 'Unavailable'}")
+          print(f"- Connection detail: {safe_cause}")
+          print("- Raw output, exception messages, prompts, generated content, and credentials are withheld.")
           PY
             summary_file="$GITHUB_STEP_SUMMARY"
             stage="$(sed -n 's/^- Last reported stage: //p' "$summary_file" | tail -n 1)"
             exception_type="$(sed -n 's/^- Exception type: //p' "$summary_file" | tail -n 1)"
-            echo "::error::StoryLoop failed during ${stage:-unknown stage} (${exception_type:-unknown exception}). Raw output is withheld."
+            safe_cause="$(sed -n 's/^- Connection detail: //p' "$summary_file" | tail -n 1)"
+            echo "::error::StoryLoop failed during ${stage:-unknown stage} (${exception_type:-unknown exception}); ${safe_cause:-connection detail unavailable}. Raw output is withheld."
             exit 1
           fi
