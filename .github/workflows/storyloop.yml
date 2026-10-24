@@ -4,6 +4,8 @@ on:
   # 06:00 Asia/Kolkata (UTC+05:30).
   schedule:
     - cron: "30 0 * * *"
+    # Temporary hourly public-publish test on Oct 24, 2026: 07:00–18:00 IST.
+    - cron: "30 1-12 24 10 *"
   workflow_dispatch:
     inputs:
       publish:
@@ -25,10 +27,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  schedule-window:
+    runs-on: ubuntu-24.04
+    outputs:
+      allow_pipeline: ${{ steps.window.outputs.allow_pipeline }}
+    steps:
+      - name: Limit the temporary hourly test to Oct 24, 2026
+        id: window
+        env:
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$SCHEDULE_CRON" == "30 1-12 24 10 *" && "$(date -u +%F)" != "2026-10-24" ]]; then
+            echo "allow_pipeline=false" >> "$GITHUB_OUTPUT"
+            echo "The temporary hourly publishing window has expired." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "allow_pipeline=true" >> "$GITHUB_OUTPUT"
+          fi
+
   run-pipeline:
+    needs: schedule-window
     # Scheduled runs stay dormant until auto-publishing is enabled.
     # Manual runs may publish publicly or run diagnostics without publishing.
-    if: ${{ (github.event_name == 'workflow_dispatch' && (inputs.publish || inputs.diagnostic)) || (github.event_name == 'schedule' && vars.STORYLOOP_AUTO_PUBLISH == 'true') }}
+    if: ${{ needs.schedule-window.outputs.allow_pipeline == 'true' && ((github.event_name == 'workflow_dispatch' && (inputs.publish || inputs.diagnostic)) || (github.event_name == 'schedule' && vars.STORYLOOP_AUTO_PUBLISH == 'true')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
